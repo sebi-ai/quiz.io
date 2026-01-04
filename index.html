@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="score-display" id="score-display">Score: 0</div>
+
+    <div id="selection" class="selection">
+        <h2>Select a Quiz</h2>
+        <div id="quiz-list" class="quiz-list"></div>
+    </div>
+
+    <div class="quiz-container" id="quiz-container" style="display:none;">
+        <div class="quiz-header">
+            <h1 id="quiz-title">Quiz</h1>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <p class="question-count" id="question-count">Question 1 / 1</p>
+        </div>
+
+        <div class="quiz-body">
+            <h2 class="question" id="question">Click "Start" to begin!</h2>
+            <div class="answers" id="answers"></div>
+        </div>
+
+        <div class="quiz-footer">
+            <div></div>
+            <div>
+                <button class="btn" id="back-btn" style="display:none; margin-right:8px;">Back</button>
+                <button class="btn" id="start-btn">Start</button>
+                <button class="btn" id="next-btn" style="display: none;">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

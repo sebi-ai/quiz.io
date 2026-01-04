@@ -1,2 +1,5 @@
 # quiz.io
-A funny and interactive quiz website.
+
+This is how it works: 
+When you start the 
+
