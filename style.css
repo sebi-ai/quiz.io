@@ -14,11 +14,8 @@ body {
     padding: 20px;
 }
 
-/* Fixed score display top-right */
+/* Score display */
 .score-display {
-    position: fixed;
-    top: 20px;
-    right: 20px;
     background: linear-gradient(135deg, rgba(79,172,254,0.15), rgba(0,242,254,0.1));
     border: 1px solid rgba(79,172,254,0.3);
     border-radius: 12px;
@@ -26,7 +23,6 @@ body {
     color: #4facfe;
     font-size: 1.1rem;
     font-weight: 700;
-    z-index: 1000;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
@@ -192,6 +188,265 @@ body {
 .quiz-card-actions { display:flex; gap:8px; }
 .start-quiz-btn { padding:8px 12px; border-radius:8px; font-weight:600; }
 
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal {
+    background: linear-gradient(180deg, rgba(10, 24, 48, 0.95), rgba(6, 18, 36, 0.95));
+    border: 1px solid rgba(79, 172, 254, 0.2);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.modal h3 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.modal p {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+}
+#modal-cancel {
+    background: rgba(10, 24, 48, 0.6);
+    border: 1px solid rgba(79,172,254,0.12);
+    color: #dff4ff;
+}
+
+#modal-cancel:hover {
+    background: rgba(10, 24, 48, 0.68);
+}
+
+/* Use three blue tones for modal actions to match the app design */
+#modal-ok {
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    color: #092033;
+}
+
+#modal-ok-no-show {
+    background: linear-gradient(90deg, #2b8cff, #4facfe);
+    color: #092033;
+}
+
+/* Remove glowing/hover effects for modal buttons so they blend with design */
+.modal .btn {
+    box-shadow: none;
+    transform: none;
+}
+
+.modal .btn:hover {
+    box-shadow: none;
+    transform: none;
+    filter: brightness(0.95);
+}
+
+/* Completed Badge */
+.completed-badge {
+    background: linear-gradient(90deg, #28a745, #20c997);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-left: 10px;
+}
+
+/* Tutorial Modal Styles */
+.tutorial-modal {
+    max-width: 500px;
+}
+
+.tutorial-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.tutorial-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.tutorial-dot.active {
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    transform: scale(1.2);
+}
+
+.tutorial-actions {
+    flex-direction: row !important;
+    justify-content: space-between;
+}
+
+.tutorial-actions .btn {
+    width: auto;
+    flex: 1;
+}
+
+/* Score Display Container */
+.score-display-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+}
+
+/* Auth / Login Styles */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.auth-input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.auth-input:focus {
+    border-color: rgba(79, 172, 254, 0.5);
+}
+
+.auth-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.remember-me input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4facfe;
+}
+
+.auth-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auth-error {
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    text-align: center;
+    min-height: 1.2em;
+}
+
+.auth-switch {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.auth-switch a {
+    color: #4facfe;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+.selection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Quiz Footer Layout */
+.quiz-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-left {
+    display: flex;
+    gap: 10px;
+}
+
+.footer-right {
+    display: flex;
+    gap: 15px;
+}
+
+#exit-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+#exit-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
 @media (max-width: 500px) {
     .quiz-container {
         padding: 25px;
@@ -203,5 +458,9 @@ body {
     
     .question {
         font-size: 1.1rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
     }
 }

@@ -7,10 +7,36 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="score-display" id="score-display">Score: 0</div>
+    <div class="score-display-container">
+        <div class="score-display" id="user-display">Not logged in</div>
+        <div class="score-display" id="total-score-display">Total: 0</div>
+        <div class="score-display" id="score-display">Quiz: 0</div>
+    </div>
 
-    <div id="selection" class="selection">
-        <h2>Select a Quiz</h2>
+    <!-- Login Screen -->
+    <div id="login-screen" class="selection">
+        <h2 id="auth-title">Login</h2>
+        <div class="auth-form">
+            <input type="text" id="auth-username" class="auth-input" placeholder="Username" autocomplete="username">
+            <input type="password" id="auth-password" class="auth-input" placeholder="Password" autocomplete="current-password">
+            <div class="remember-me">
+                <input type="checkbox" id="remember-me-checkbox">
+                <label for="remember-me-checkbox">Remember me</label>
+            </div>
+            <p id="auth-error" class="auth-error"></p>
+            <div class="auth-actions">
+                <button class="btn" id="login-btn">Login</button>
+                <button class="btn btn-secondary" id="register-btn">Create Account</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="selection" class="selection" style="display:none;">
+        <div class="selection-header">
+            <h2>Select a Quiz</h2>
+            <button class="btn btn-secondary btn-small" id="logout-btn">Logout</button>
+        </div>
         <div id="quiz-list" class="quiz-list"></div>
     </div>
 
@@ -29,11 +55,44 @@
         </div>
 
         <div class="quiz-footer">
-            <div></div>
-            <div>
-                <button class="btn" id="back-btn" style="display:none; margin-right:8px;">Back</button>
+            <div class="footer-left">
+                <button class="btn btn-secondary" id="exit-btn">Exit</button>
+            </div>
+            <div class="footer-right">
                 <button class="btn" id="start-btn">Start</button>
                 <button class="btn" id="next-btn" style="display: none;">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restart Warning Modal -->
+    <div class="modal-overlay" id="restart-modal" style="display: none;">
+        <div class="modal">
+            <h3>Restart Quiz?</h3>
+            <p>You have already completed this quiz. If you restart, all points from this quiz will be removed from your total score.</p>
+            <div class="modal-actions">
+                <button class="btn modal-btn" id="modal-cancel">Cancel</button>
+                <button class="btn modal-btn" id="modal-ok">Okay</button>
+                <button class="btn modal-btn" id="modal-ok-no-show">Okay, don't show again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div class="modal-overlay" id="tutorial-modal" style="display: none;">
+        <div class="modal tutorial-modal">
+            <h3 id="tutorial-title">Welcome to Quiz App!</h3>
+            <p id="tutorial-text">Let's show you how everything works.</p>
+            <div class="tutorial-progress">
+                <span class="tutorial-dot active"></span>
+                <span class="tutorial-dot"></span>
+                <span class="tutorial-dot"></span>
+                <span class="tutorial-dot"></span>
+                <span class="tutorial-dot"></span>
+            </div>
+            <div class="modal-actions tutorial-actions">
+                <button class="btn btn-secondary" id="tutorial-skip">Skip Tutorial</button>
+                <button class="btn" id="tutorial-next">Next</button>
             </div>
         </div>
     </div>
