@@ -8,9 +8,9 @@
 </head>
 <body>
     <div class="score-display-container">
-        <div class="score-display" id="user-display">Not logged in</div>
-        <div class="score-display" id="total-score-display">Total: 0</div>
-        <div class="score-display" id="score-display">Quiz: 0</div>
+        <div class="score-display clickable" id="user-display">Not logged in</div>
+        <div class="score-display clickable" id="total-score-display">Total Points: 0</div>
+        <div class="score-display" id="score-display">Points: 0</div>
     </div>
 
     <!-- Login Screen -->
@@ -69,7 +69,7 @@
     <div class="modal-overlay" id="restart-modal" style="display: none;">
         <div class="modal">
             <h3>Restart Quiz?</h3>
-            <p>You have already completed this quiz. If you restart, all points from this quiz will be removed from your total score.</p>
+            <p>You have already completed this quiz. If you restart, all points from this quiz will be removed from your total points.</p>
             <div class="modal-actions">
                 <button class="btn modal-btn" id="modal-cancel">Cancel</button>
                 <button class="btn modal-btn" id="modal-ok">Okay</button>
@@ -97,6 +97,41 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal" style="display: none;">
+        <div class="modal settings-modal">
+            <h3>Settings</h3>
+            <div class="settings-form">
+                <div class="settings-section">
+                    <label class="settings-label">Change Password</label>
+                    <input type="password" id="settings-old-password" class="auth-input" placeholder="Current Password">
+                    <input type="password" id="settings-new-password" class="auth-input" placeholder="New Password">
+                    <input type="password" id="settings-confirm-password" class="auth-input" placeholder="Confirm New Password">
+                </div>
+                <p id="settings-error" class="auth-error"></p>
+                <p id="settings-success" class="settings-success"></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="settings-close">Close</button>
+                <button class="btn" id="settings-save">Save Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="history-modal" style="display: none;">
+        <div class="modal history-modal">
+            <h3>Quiz History</h3>
+            <div id="history-content" class="history-content">
+                <p class="history-empty">No quiz history yet. Complete a quiz to see your results!</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="history-close">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
+
