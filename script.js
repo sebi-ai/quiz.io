@@ -25,8 +25,8 @@ const quizzes = [
             { question: 'What was the first Website, HTML was used in?', answers: ['www.w3.org','www.xerox.com','info.cern.ch','world.std.com'], correct: 2 },
             { question: 'How many tags are there in HTML5?', answers: ['about 50','about 100','about 200','about 300'], correct: 1 },
             { question: 'Who was the Founder of HTML?', answers: ['James Gosling','Brendan Eich','Guido van Rossum','Tim Berners-Lee'], correct: 3 },
-            { question: 'What does HTML stand for?', answers: ['Hyper Trainer Marking Language','Hyper Text Marketing Language','Hyper Text Markup Language','Hyper Text Markup Leveler'], correct: 2 }
-            { question: 'Which tag is used to define a table row in HTML?', answers: ['<td>', '<table>', '<th>', '<tr>'], correct: 3 },
+            { question: 'What does HTML stand for?', answers: ['Hyper Trainer Marking Language','Hyper Text Marketing Language','Hyper Text Markup Language','Hyper Text Markup Leveler'], correct: 2 },
+            { question: 'Which tag is used to define a table row in HTML?', answers: ['<td>', '<table>', '<th>', '<tr>'], correct: 3 }
         ]
     },
     {
@@ -116,14 +116,49 @@ let dontShowRestartWarning = localStorage.getItem('dontShowRestartWarning') === 
 // Auth State
 let currentUser = null;
 let isRegisterMode = false;
-let users = JSON.parse(localStorage.getItem('quizUsers') || '{}');
+let users = {};
+let apiAvailable = true; // assume server available; handle errors per-request
+
+// API helpers: register, login, updateUser, getUser
+async function apiRegister(username, password) {
+    const res = await fetch('/auth/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) throw await res.json();
+    return res.json();
+}
+
+async function apiLogin(username, password) {
+    const res = await fetch('/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) throw await res.json();
+    return res.json();
+}
+
+async function apiUpdateUser(username, userFields) {
+    const res = await fetch('/accounts/update-user', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, user: userFields })
+    });
+    if (!res.ok) throw await res.json();
+    return res.json();
+}
+
+async function apiGetUser(username) {
+    const res = await fetch(`/accounts/${encodeURIComponent(username)}`);
+    if (!res.ok) throw await res.json();
+    return res.json();
+}
 
 // Tutorial State
 let tutorialStep = 0;
 const tutorialSteps = [
     {
         title: 'Welcome to Quiz App!',
-        text: 'This is a fun quiz app where you can test your knowledge on various topics. Let\'s show you how everything works!'
+        text: 'This is a fun quiz app where you can test your knowledge on various topics. Let \'s show you how everything works!'
     },
     {
         title: 'How to Play',
@@ -138,10 +173,15 @@ const tutorialSteps = [
         text: 'Your "Total Points" accumulates all points from completed quizzes. "Quiz Points" shows points for your current quiz. Your progress is saved to your account!'
     },
     {
+        title: 'Don\'t despair!',
+        text: 'This is more an guessing app than a quiz app. If you don\'t know an answer, just guess, what sounds the best to you.'
+    },
+    {
         title: 'Ready to Start!',
         text: 'You can restart completed quizzes anytime. Click a quiz to begin and have fun! Good luck!'
     }
 ];
+
 
 // Check for remembered session
 function checkRememberedSession() {
@@ -225,9 +265,12 @@ function nextTutorialStep() {
 function closeTutorial() {
     if (tutorialModal) tutorialModal.style.display = 'none';
     // Mark tutorial as completed
-    if (currentUser && users[currentUser]) {
+    if (currentUser) {
+        users[currentUser] = users[currentUser] || {};
         users[currentUser].tutorialCompleted = true;
-        localStorage.setItem('quizUsers', JSON.stringify(users));
+        apiUpdateUser(currentUser, { tutorialCompleted: true }).catch(() => {
+            try { localStorage.setItem('quizUsers', JSON.stringify(users)); } catch (e) {}
+        });
     }
 }
 
@@ -238,16 +281,23 @@ if (tutorialSkipBtn) tutorialSkipBtn.addEventListener('click', closeTutorial);
 // Save current user data
 function saveUserData() {
     if (!currentUser) return;
-    const existing = users[currentUser] || {};
-    users[currentUser] = {
-        password: existing.password || simpleHash(''),
-        totalScore: totalScore || 0,
-        completedQuizzes: completedQuizzes || {},
-        quizHistory: quizHistory || [],
-        dontShowRestartWarning: !!dontShowRestartWarning,
-        tutorialCompleted: existing.tutorialCompleted || false
+    users[currentUser] = users[currentUser] || {};
+    users[currentUser].totalScore = totalScore || 0;
+    users[currentUser].completedQuizzes = completedQuizzes || {};
+    users[currentUser].quizHistory = quizHistory || [];
+    users[currentUser].dontShowRestartWarning = !!dontShowRestartWarning;
+    users[currentUser].tutorialCompleted = users[currentUser].tutorialCompleted || false;
+    // Push minimal update to server
+    const payload = {
+        totalScore: users[currentUser].totalScore,
+        completedQuizzes: users[currentUser].completedQuizzes,
+        quizHistory: users[currentUser].quizHistory,
+        dontShowRestartWarning: users[currentUser].dontShowRestartWarning,
+        tutorialCompleted: users[currentUser].tutorialCompleted
     };
-    localStorage.setItem('quizUsers', JSON.stringify(users));
+    apiUpdateUser(currentUser, payload).catch(() => {
+        try { localStorage.setItem('quizUsers', JSON.stringify(users)); } catch (e) {}
+    });
 }
 
 // Logout
@@ -279,77 +329,64 @@ function simpleHash(str) {
     return hash.toString();
 }
 
+// Load users from server (GET /accounts). Falls back to localStorage if server unavailable.
+// legacy loader removed; we use auth endpoints. Keep localStorage fallback when needed.
+
 // Handle login
-function handleLogin() {
+async function handleLogin() {
     const username = authUsername.value.trim();
     const password = authPassword.value;
-    
+
     if (!username || !password) {
         authError.textContent = 'Please enter username and password.';
         return;
     }
-    
-    const userData = users[username];
-    if (!userData) {
-        authError.textContent = 'User not found. Please register first.';
-        return;
+
+    try {
+        const userData = await apiLogin(username, password);
+        if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+            localStorage.setItem('rememberedUser', username);
+        }
+        users[username] = users[username] || {};
+        // merge returned fields into local cache
+        Object.assign(users[username], userData);
+        loginUser(username, userData);
+    } catch (err) {
+        authError.textContent = (err && err.error) ? err.error : 'Login failed.';
     }
-    
-    if (userData.password !== simpleHash(password)) {
-        authError.textContent = 'Incorrect password.';
-        return;
-    }
-    
-    // Remember me
-    if (rememberMeCheckbox && rememberMeCheckbox.checked) {
-        localStorage.setItem('rememberedUser', username);
-    }
-    
-    loginUser(username, userData);
 }
 
 // Handle register
-function handleRegister() {
+async function handleRegister() {
     const username = authUsername.value.trim();
     const password = authPassword.value;
-    
+
     if (!username || !password) {
         authError.textContent = 'Please enter username and password.';
         return;
     }
-    
+
     if (username.length < 3) {
         authError.textContent = 'Username must be at least 3 characters.';
         return;
     }
-    
+
     if (password.length < 4) {
         authError.textContent = 'Password must be at least 4 characters.';
         return;
     }
-    
-    if (users[username]) {
-        authError.textContent = 'Username already exists.';
-        return;
+
+    try {
+        const userData = await apiRegister(username, password);
+        if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+            localStorage.setItem('rememberedUser', username);
+        }
+        users[username] = users[username] || {};
+        Object.assign(users[username], userData);
+        loginUser(username, userData, true);
+    } catch (err) {
+        authError.textContent = (err && err.error) ? err.error : 'Registration failed.';
     }
-    
-    // Create new user
-    users[username] = {
-        password: simpleHash(password),
-        totalScore: 0,
-        completedQuizzes: {},
-        quizHistory: [],
-        dontShowRestartWarning: false,
-        tutorialCompleted: false
-    };
-    localStorage.setItem('quizUsers', JSON.stringify(users));
-    
-    // Remember me
-    if (rememberMeCheckbox && rememberMeCheckbox.checked) {
-        localStorage.setItem('rememberedUser', username);
-    }
-    
-    loginUser(username, users[username], true); // true = new user
 }
 
 // Auth event listeners
@@ -650,7 +687,7 @@ function hideSettingsModal() {
     if (settingsModal) settingsModal.style.display = 'none';
 }
 
-function saveSettings() {
+async function saveSettings() {
     const oldPassword = settingsOldPassword ? settingsOldPassword.value : '';
     const newPassword = settingsNewPassword ? settingsNewPassword.value : '';
     const confirmPassword = settingsConfirmPassword ? settingsConfirmPassword.value : '';
@@ -663,7 +700,10 @@ function saveSettings() {
         return;
     }
     
-    if (!users[currentUser] || users[currentUser].password !== simpleHash(oldPassword)) {
+    // Verify old password with server
+    try {
+        await apiLogin(currentUser, oldPassword);
+    } catch (err) {
         if (settingsError) settingsError.textContent = 'Current password is incorrect.';
         return;
     }
@@ -678,9 +718,14 @@ function saveSettings() {
         return;
     }
     
-    // Update password
-    users[currentUser].password = simpleHash(newPassword);
-    localStorage.setItem('quizUsers', JSON.stringify(users));
+    // Request server to update (server will hash)
+    apiUpdateUser(currentUser, { password: newPassword }).then(() => {
+        if (settingsSuccess) settingsSuccess.textContent = 'Password changed successfully!';
+        users[currentUser] = users[currentUser] || {};
+        users[currentUser].password = '***';
+    }).catch(() => {
+        if (settingsError) settingsError.textContent = 'Failed to update password.';
+    });
     
     if (settingsSuccess) settingsSuccess.textContent = 'Password changed successfully!';
     if (settingsOldPassword) settingsOldPassword.value = '';
@@ -772,10 +817,32 @@ function toggleHistoryQuestions(index) {
 if (totalScoreDisplayEl) totalScoreDisplayEl.addEventListener('click', showHistoryModal);
 if (historyCloseBtn) historyCloseBtn.addEventListener('click', hideHistoryModal);
 
-// Initial render - check for remembered session
-if (!checkRememberedSession()) {
-    // Show login screen
+// Initial render - try to restore remembered session
+(async function initAuth() {
+    const remembered = localStorage.getItem('rememberedUser');
+    if (remembered) {
+        // try server first
+        try {
+            const userData = await apiGetUser(remembered);
+            users[remembered] = users[remembered] || {};
+            Object.assign(users[remembered], userData);
+            loginUser(remembered, userData);
+            updateTotalScoreDisplay();
+            return;
+        } catch (e) {
+            // fallback to localStorage
+            try {
+                users = JSON.parse(localStorage.getItem('quizUsers') || '{}');
+            } catch (e2) { users = {}; }
+            if (!checkRememberedSession()) {
+                if (loginScreen) loginScreen.style.display = 'block';
+                if (selectionEl) selectionEl.style.display = 'none';
+            }
+            updateTotalScoreDisplay();
+            return;
+        }
+    }
     if (loginScreen) loginScreen.style.display = 'block';
     if (selectionEl) selectionEl.style.display = 'none';
-}
-updateTotalScoreDisplay();
+    updateTotalScoreDisplay();
+})();

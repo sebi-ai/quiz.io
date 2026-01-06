@@ -1,0 +1,6 @@
+nohup: ignoring input
+
+> quiz.io-local-server@1.0.0 start
+> node server.js
+
+Server listening on http://localhost:3000

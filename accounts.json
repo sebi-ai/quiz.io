@@ -1,0 +1,34 @@
+{
+  "1234": {
+    "password": "$2a$10$Pek2ah4yzp4JFpjv8OYu1uiMVOfOCKf8lt6LWi.fa5Gh9AgrruQcm",
+    "totalScore": 0,
+    "completedQuizzes": {},
+    "quizHistory": [],
+    "dontShowRestartWarning": false,
+    "tutorialCompleted": true
+  },
+  "alice": {
+    "password": "$2a$10$yH4sjUaftJQhC7H7Q1qgaexhPqQBe39hbDPXReJmZZFbt69mbUxpa",
+    "totalScore": 0,
+    "completedQuizzes": {},
+    "quizHistory": [],
+    "dontShowRestartWarning": false,
+    "tutorialCompleted": false
+  },
+  "e2euser": {
+    "password": "$2a$10$qkB41zzUv8UaovThATICi.iaTTlJTx69rGSvlE.Rqny.nk52zyRXq",
+    "totalScore": 0,
+    "completedQuizzes": {},
+    "quizHistory": [],
+    "dontShowRestartWarning": false,
+    "tutorialCompleted": false
+  },
+  "^23rsfdeefasdf": {
+    "password": "$2a$10$RrnrgG0jUa1QqG24YnYKZOfTZ2wPblcplx0r0TOqIzgKWuaPP4Ulq",
+    "totalScore": 0,
+    "completedQuizzes": {},
+    "quizHistory": [],
+    "dontShowRestartWarning": false,
+    "tutorialCompleted": true
+  }
+}
