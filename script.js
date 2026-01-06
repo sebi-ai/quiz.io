@@ -43,61 +43,23 @@ const quizzes = [
     }
 ];
 
-// DOM Elements
-const loginScreen = document.getElementById('login-screen');
-const selectionEl = document.getElementById('selection');
-const quizListEl = document.getElementById('quiz-list');
-const quizContainer = document.getElementById('quiz-container');
-const quizTitleEl = document.getElementById('quiz-title');
-const questionEl = document.getElementById('question');
-const answersEl = document.getElementById('answers');
-const scoreDisplayEl = document.getElementById('score-display');
-const progressEl = document.getElementById('progress');
-const questionCountEl = document.getElementById('question-count');
-const startBtn = document.getElementById('start-btn');
-const nextBtn = document.getElementById('next-btn');
-const exitBtn = document.getElementById('exit-btn');
+// DOM element variables (declared here, assigned after DOM is ready)
+let loginScreen, selectionEl, quizListEl, quizContainer, quizTitleEl, questionEl, answersEl, scoreDisplayEl, progressEl, questionCountEl, startBtn, nextBtn, exitBtn;
 
-// Auth DOM Elements
-const authTitle = document.getElementById('auth-title');
-const authUsername = document.getElementById('auth-username');
-const authPassword = document.getElementById('auth-password');
-const rememberMeCheckbox = document.getElementById('remember-me-checkbox');
-const authError = document.getElementById('auth-error');
-const loginBtn = document.getElementById('login-btn');
-const registerBtn = document.getElementById('register-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const userDisplayEl = document.getElementById('user-display');
+// Auth DOM element variables
+let authTitle, authUsername, authPassword, rememberMeCheckbox, authError, loginBtn, registerBtn, logoutBtn, userDisplayEl;
 
-// Tutorial DOM Elements
-const tutorialModal = document.getElementById('tutorial-modal');
-const tutorialTitle = document.getElementById('tutorial-title');
-const tutorialText = document.getElementById('tutorial-text');
-const tutorialNextBtn = document.getElementById('tutorial-next');
-const tutorialSkipBtn = document.getElementById('tutorial-skip');
-const tutorialDots = document.querySelectorAll('.tutorial-dot');
+// Tutorial DOM element variables
+let tutorialModal, tutorialTitle, tutorialText, tutorialNextBtn, tutorialSkipBtn, tutorialDots;
 
-// Settings DOM Elements
-const settingsModal = document.getElementById('settings-modal');
-const settingsOldPassword = document.getElementById('settings-old-password');
-const settingsNewPassword = document.getElementById('settings-new-password');
-const settingsConfirmPassword = document.getElementById('settings-confirm-password');
-const settingsError = document.getElementById('settings-error');
-const settingsSuccess = document.getElementById('settings-success');
-const settingsCloseBtn = document.getElementById('settings-close');
-const settingsSaveBtn = document.getElementById('settings-save');
+// Settings DOM element variables
+let settingsModal, settingsOldPassword, settingsNewPassword, settingsConfirmPassword, settingsError, settingsSuccess, settingsCloseBtn, settingsSaveBtn;
 
-// History DOM Elements
-const historyModal = document.getElementById('history-modal');
-const historyContent = document.getElementById('history-content');
-const historyCloseBtn = document.getElementById('history-close');
+// History DOM element variables
+let historyModal, historyContent, historyCloseBtn;
 
 // Modal elements
-const restartModal = document.getElementById('restart-modal');
-const modalCancelBtn = document.getElementById('modal-cancel');
-const modalOkBtn = document.getElementById('modal-ok');
-const modalOkNoShowBtn = document.getElementById('modal-ok-no-show');
-const totalScoreDisplayEl = document.getElementById('total-score-display');
+let restartModal, modalCancelBtn, modalOkBtn, modalOkNoShowBtn, totalScoreDisplayEl;
 
 // State
 let currentQuizIndex = null;
@@ -115,6 +77,7 @@ let dontShowRestartWarning = localStorage.getItem('dontShowRestartWarning') === 
 
 // Auth State
 let currentUser = null;
+let sessionToken = localStorage.getItem('sessionToken') || null;
 let isRegisterMode = false;
 let users = {};
 let apiAvailable = true; // assume server available; handle errors per-request
@@ -184,14 +147,19 @@ const tutorialSteps = [
 
 
 // Check for remembered session
-function checkRememberedSession() {
-    const remembered = localStorage.getItem('rememberedUser');
-    if (remembered) {
-        const userData = users[remembered];
-        if (userData) {
-            loginUser(remembered, userData);
+async function checkRememberedSession() {
+    if (!sessionToken) return false;
+    
+    try {
+        const data = await apiRequest('/api/verify-session');
+        if (data.success) {
+            loginUser(data.username, data.userData);
             return true;
         }
+    } catch (error) {
+        console.log('Session invalid or expired');
+        sessionToken = null;
+        localStorage.removeItem('sessionToken');
     }
     return false;
 }
@@ -213,10 +181,6 @@ function loginUser(username, userData, isNewUser = false) {
     
     // Show tutorial only for brand-new accounts. Do not show for returning users.
     if (isNewUser) {
-        if (users[username]) {
-            users[username].tutorialCompleted = false;
-            localStorage.setItem('quizUsers', JSON.stringify(users));
-        }
         setTimeout(showTutorial, 300);
     }
 }
@@ -301,13 +265,23 @@ function saveUserData() {
 }
 
 // Logout
-function logout() {
-    saveUserData();
+async function logout() {
+    await saveUserData();
+    
+    if (sessionToken) {
+        try {
+            await apiRequest('/api/logout', 'POST');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    }
+    
     currentUser = null;
+    sessionToken = null;
     totalScore = 0;
     completedQuizzes = {};
     quizHistory = [];
-    localStorage.removeItem('rememberedUser');
+    localStorage.removeItem('sessionToken');
     
     if (userDisplayEl) userDisplayEl.textContent = 'Not logged in';
     if (selectionEl) selectionEl.style.display = 'none';
@@ -334,6 +308,7 @@ function simpleHash(str) {
 
 // Handle login
 async function handleLogin() {
+async function handleLogin() {
     const username = authUsername.value.trim();
     const password = authPassword.value;
 
@@ -357,6 +332,7 @@ async function handleLogin() {
 }
 
 // Handle register
+async function handleRegister() {
 async function handleRegister() {
     const username = authUsername.value.trim();
     const password = authPassword.value;
@@ -688,6 +664,7 @@ function hideSettingsModal() {
 }
 
 async function saveSettings() {
+async function saveSettings() {
     const oldPassword = settingsOldPassword ? settingsOldPassword.value : '';
     const newPassword = settingsNewPassword ? settingsNewPassword.value : '';
     const confirmPassword = settingsConfirmPassword ? settingsConfirmPassword.value : '';
@@ -816,6 +793,103 @@ function toggleHistoryQuestions(index) {
 // History event listeners
 if (totalScoreDisplayEl) totalScoreDisplayEl.addEventListener('click', showHistoryModal);
 if (historyCloseBtn) historyCloseBtn.addEventListener('click', hideHistoryModal);
+
+// Assign DOM elements and attach event listeners after DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM assignments
+    loginScreen = document.getElementById('login-screen');
+    selectionEl = document.getElementById('selection');
+    quizListEl = document.getElementById('quiz-list');
+    quizContainer = document.getElementById('quiz-container');
+    quizTitleEl = document.getElementById('quiz-title');
+    questionEl = document.getElementById('question');
+    answersEl = document.getElementById('answers');
+    scoreDisplayEl = document.getElementById('score-display');
+    progressEl = document.getElementById('progress');
+    questionCountEl = document.getElementById('question-count');
+    startBtn = document.getElementById('start-btn');
+    nextBtn = document.getElementById('next-btn');
+    exitBtn = document.getElementById('exit-btn');
+
+    authTitle = document.getElementById('auth-title');
+    authUsername = document.getElementById('auth-username');
+    authPassword = document.getElementById('auth-password');
+    rememberMeCheckbox = document.getElementById('remember-me-checkbox');
+    authError = document.getElementById('auth-error');
+    loginBtn = document.getElementById('login-btn');
+    registerBtn = document.getElementById('register-btn');
+    logoutBtn = document.getElementById('logout-btn');
+    userDisplayEl = document.getElementById('user-display');
+
+    tutorialModal = document.getElementById('tutorial-modal');
+    tutorialTitle = document.getElementById('tutorial-title');
+    tutorialText = document.getElementById('tutorial-text');
+    tutorialNextBtn = document.getElementById('tutorial-next');
+    tutorialSkipBtn = document.getElementById('tutorial-skip');
+    // Render tutorial progress dots dynamically so added steps appear
+    const tutorialProgressEl = document.querySelector('.tutorial-progress');
+    if (tutorialProgressEl) {
+        tutorialProgressEl.innerHTML = '';
+        for (let i = 0; i < tutorialSteps.length; i++) {
+            const span = document.createElement('span');
+            span.className = 'tutorial-dot' + (i === 0 ? ' active' : '');
+            tutorialProgressEl.appendChild(span);
+        }
+        tutorialDots = document.querySelectorAll('.tutorial-dot');
+    } else {
+        tutorialDots = [];
+    }
+
+    settingsModal = document.getElementById('settings-modal');
+    settingsOldPassword = document.getElementById('settings-old-password');
+    settingsNewPassword = document.getElementById('settings-new-password');
+    settingsConfirmPassword = document.getElementById('settings-confirm-password');
+    settingsError = document.getElementById('settings-error');
+    settingsSuccess = document.getElementById('settings-success');
+    settingsCloseBtn = document.getElementById('settings-close');
+    settingsSaveBtn = document.getElementById('settings-save');
+
+    historyModal = document.getElementById('history-modal');
+    historyContent = document.getElementById('history-content');
+    historyCloseBtn = document.getElementById('history-close');
+
+    restartModal = document.getElementById('restart-modal');
+    modalCancelBtn = document.getElementById('modal-cancel');
+    modalOkBtn = document.getElementById('modal-ok');
+    modalOkNoShowBtn = document.getElementById('modal-ok-no-show');
+    totalScoreDisplayEl = document.getElementById('total-score-display');
+
+    // Event listeners (ensure they are attached now that DOM elements exist)
+    if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+    if (registerBtn) registerBtn.addEventListener('click', handleRegister);
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+
+    if (authPassword) {
+        authPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (isRegisterMode) handleRegister();
+                else handleLogin();
+            }
+        });
+    }
+
+    if (tutorialNextBtn) tutorialNextBtn.addEventListener('click', nextTutorialStep);
+    if (tutorialSkipBtn) tutorialSkipBtn.addEventListener('click', closeTutorial);
+
+    if (startBtn) startBtn.addEventListener('click', startCurrentQuiz);
+    if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
+    if (exitBtn) exitBtn.addEventListener('click', goBackToSelection);
+
+    if (modalCancelBtn) modalCancelBtn.addEventListener('click', hideRestartModal);
+    if (modalOkBtn) modalOkBtn.addEventListener('click', () => confirmRestart(false));
+    if (modalOkNoShowBtn) modalOkNoShowBtn.addEventListener('click', () => confirmRestart(true));
+
+    if (userDisplayEl) userDisplayEl.addEventListener('click', showSettingsModal);
+    if (settingsCloseBtn) settingsCloseBtn.addEventListener('click', hideSettingsModal);
+    if (settingsSaveBtn) settingsSaveBtn.addEventListener('click', saveSettings);
+
+    if (totalScoreDisplayEl) totalScoreDisplayEl.addEventListener('click', showHistoryModal);
+    if (historyCloseBtn) historyCloseBtn.addEventListener('click', hideHistoryModal);
 
 // Initial render - try to restore remembered session
 (async function initAuth() {
