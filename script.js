@@ -26,6 +26,7 @@ const quizzes = [
             { question: 'How many tags are there in HTML5?', answers: ['about 50','about 100','about 200','about 300'], correct: 1 },
             { question: 'Who was the Founder of HTML?', answers: ['James Gosling','Brendan Eich','Guido van Rossum','Tim Berners-Lee'], correct: 3 },
             { question: 'What does HTML stand for?', answers: ['Hyper Trainer Marking Language','Hyper Text Marketing Language','Hyper Text Markup Language','Hyper Text Markup Leveler'], correct: 2 }
+            { question: 'Which tag is used to define a table row in HTML?', answers: ['<td>', '<table>', '<th>', '<tr>'], correct: 3 },
         ]
     },
     {
