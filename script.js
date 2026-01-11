@@ -7,15 +7,12 @@ const quizzes = [
             { question: 'How many coding languages are there?', answers: ['1,000-5,000','5,000-10,000','10,000-15,000','15,000-20,000'], correct: 1 },
             { question: 'What is the most popular coding language on GitHub in 2025?', answers: ['Python','JavaScript','Java','TypeScript'], correct: 1 },
             { question: 'Which coding language is primarily used for iOS development?', answers: ['Java','Kotlin','Swift','C#'], correct: 2 },
-            { question: 'Which coding language is known for its use in data science and machine learning?', answers: ['Python','R','Julia','MATLAB'], correct: 0 },
             { question: 'Which coding language is primarily used for Windows development?', answers: ['Python','Java','C#','Ruby'], correct: 2 },
             { question: 'Which coding language was created by Guido van Rossum?', answers: ['Python','C++','Java','Ruby'], correct: 0 },
             { question: 'What does CSS stand for?', answers: ['Colorful Style Sheets','Computer Style Sheets','Creative Style System','Cascading Style Sheets'], correct: 3 },
             { question: 'Which coding language is primarily used for Android development?', answers: ['Java','Swift','Kotlin','C#'], correct: 0 },
             { question: 'Which coding language was developed by Microsoft?', answers: ['Java','Ruby','Python','C#'], correct: 3 },
-            { question: 'What is the main purpose of SQL?', answers: ['Styling web pages','Managing databases','Building mobile apps','Creating animations'], correct: 1 },
-            { question: 'What does API stand for?', answers: ['Application Programming Interface','Advanced Programming Interface','Application Performance Index','Advanced Performance Index'], correct: 0 }
-        ]
+            { question: 'What is the main purpose of SQL?', answers: ['Styling web pages','Managing databases','Building mobile apps','Creating animations'], correct: 1 },        ]
     },
     {
         id: 'HTML',
@@ -26,7 +23,11 @@ const quizzes = [
             { question: 'How many tags are there in HTML5?', answers: ['about 50','about 100','about 200','about 300'], correct: 1 },
             { question: 'Who was the Founder of HTML?', answers: ['James Gosling','Brendan Eich','Guido van Rossum','Tim Berners-Lee'], correct: 3 },
             { question: 'What does HTML stand for?', answers: ['Hyper Trainer Marking Language','Hyper Text Marketing Language','Hyper Text Markup Language','Hyper Text Markup Leveler'], correct: 2 },
-            { question: 'Which tag is used to define a table row in HTML?', answers: ['<td>', '<table>', '<th>', '<tr>'], correct: 3 }
+            { question: 'Which tag is used to define a table row in HTML?', answers: ['<td>', '<table>', '<th>', '<tr>'], correct: 3 },
+            { question: 'Which tag is used to define a hyperlink in HTML?', answers: ['<link>', '<a>', '<href>', '<url>'], correct: 1 },
+            { question: 'Which tag is used to define an unordered list in HTML?', answers: ['<ol>', '<ul>', '<li>', '<list>'], correct: 1 },
+            { question: 'Which attribute is used to specify an image source in HTML?', answers: ['src', 'href', 'link', 'img'], correct: 0 },
+            { question: 'Which tag is used to define a line break in HTML?', answers: ['<break>', '<lb>', '<br>', '<line>'], correct: 2 },
         ]
     },
     {
@@ -38,7 +39,12 @@ const quizzes = [
             { question: 'Which other name had JavaScript back then?', answers: ['JSCode','CodeScript','JavaCode','LiveScript'], correct: 3 },
             { question: 'What does NaN stand for in JavaScript?', answers: ['Not a Number','New a Number','Not an Array','New an Array'], correct: 0 },
             { question: 'Which company developed JavaScript?', answers: ['Netscape','Microsoft','Sun Microsystems','IBM'], correct: 0 },
-            { question: 'Which symbol is used for comments in JavaScript?', answers: ['/* */','<!-- -->','//','#'], correct: 2 }
+            { question: 'Which symbol is used for comments in JavaScript?', answers: ['/* */','<!-- -->','//','#'], correct: 2 },
+            { question: 'Which method is used to add an element at the end of an array in JavaScript?', answers: ['pop()','push()','shift()','unshift()'], correct: 1 },
+            { question: 'Which keyword is used to declare a variable in JavaScript?', answers: ['var', 'let', 'const', 'all of the above'], correct: 3 },
+            { question: 'Which function is used to parse a string to an integer in JavaScript?', answers: ['parseInt()', 'toInteger()', 'intParse()', 'stringToInt()'], correct: 0 },
+            { question: 'Which method is used to convert a JavaScript object to a JSON string?', answers: ['JSON.parse()', 'JSON.stringify()', 'toJSON()', 'stringifyJSON()'], correct: 1 }
+
         ]
     }
 ];
@@ -60,6 +66,29 @@ let historyModal, historyContent, historyCloseBtn;
 
 // Modal elements
 let restartModal, modalCancelBtn, modalOkBtn, modalOkNoShowBtn, totalScoreDisplayEl;
+
+// Create Quiz DOM elements
+let createQuizBtn, createQuizModal, newQuizNameInput, questionsContainer, addQuestionBtn;
+let createQuizCancel, createQuizSubmit, createQuizError;
+let publishWarningModal, publishWarningCancel, publishWarningConfirm;
+let customQuizListEl;
+
+// Admin DOM elements
+let adminPanelBtn, adminPanelModal, adminPanelClose;
+let adminUsersTab, adminQuizzesTab, adminWishesTab, adminUsersList, adminQuizzesList, adminWishesList;
+let adminUserSearch, quizSearchInput;
+
+// Wish DOM elements
+let wishInput, submitWishBtn, wishSuccess;
+
+// Custom quizzes state
+let customQuizzes = [];
+let isPlayingCustomQuiz = false;
+let currentCustomQuiz = null;
+
+// Admin state
+let isAdmin = false;
+let allUsers = [];
 
 // State
 let currentQuizIndex = null;
@@ -114,6 +143,26 @@ async function apiGetUser(username) {
     const res = await fetch(`/accounts/${encodeURIComponent(username)}`);
     if (!res.ok) throw await res.json();
     return res.json();
+}
+
+// Generic API helper for other endpoints (uses sessionToken if present)
+async function apiRequest(path, method = 'GET', body = null) {
+    const opts = { method, headers: {} };
+    if (body !== null) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
+    }
+    // Send session token header if available
+    if (sessionToken) {
+        opts.headers['X-Session-Token'] = sessionToken;
+    }
+    const res = await fetch(path, opts);
+    if (!res.ok) {
+        // Try to parse JSON error, otherwise throw status
+        try { throw await res.json(); } catch (e) { throw { error: 'Request failed', status: res.status }; }
+    }
+    // Try to parse JSON body, some endpoints may return empty
+    try { return await res.json(); } catch (e) { return { ok: true }; }
 }
 
 // Tutorial State
@@ -171,13 +220,22 @@ function loginUser(username, userData, isNewUser = false) {
     completedQuizzes = userData.completedQuizzes || {};
     quizHistory = userData.quizHistory || [];
     dontShowRestartWarning = userData.dontShowRestartWarning || false;
+    isAdmin = userData.isAdmin === true;
     
     userDisplayEl.textContent = `User: ${username}`;
     updateTotalScoreDisplay();
     
+    // Show/hide admin button
+    if (adminPanelBtn) {
+        adminPanelBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    }
+    
     loginScreen.style.display = 'none';
     selectionEl.style.display = 'block';
     renderQuizList();
+    
+    // Load and render custom quizzes
+    loadCustomQuizzes().then(() => renderCustomQuizList());
     
     // Show tutorial only for brand-new accounts. Do not show for returning users.
     if (isNewUser) {
@@ -237,10 +295,6 @@ function closeTutorial() {
         });
     }
 }
-
-// Tutorial event listeners
-if (tutorialNextBtn) tutorialNextBtn.addEventListener('click', nextTutorialStep);
-if (tutorialSkipBtn) tutorialSkipBtn.addEventListener('click', closeTutorial);
 
 // Save current user data
 function saveUserData() {
@@ -308,7 +362,6 @@ function simpleHash(str) {
 
 // Handle login
 async function handleLogin() {
-async function handleLogin() {
     const username = authUsername.value.trim();
     const password = authPassword.value;
 
@@ -332,7 +385,6 @@ async function handleLogin() {
 }
 
 // Handle register
-async function handleRegister() {
 async function handleRegister() {
     const username = authUsername.value.trim();
     const password = authPassword.value;
@@ -365,19 +417,19 @@ async function handleRegister() {
     }
 }
 
-// Auth event listeners
-if (loginBtn) loginBtn.addEventListener('click', handleLogin);
-if (registerBtn) registerBtn.addEventListener('click', handleRegister);
-if (logoutBtn) logoutBtn.addEventListener('click', logout);
-
-// Allow Enter key to submit
-if (authPassword) {
-    authPassword.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            if (isRegisterMode) handleRegister();
-            else handleLogin();
-        }
-    });
+// Toggle between login and register mode
+function toggleAuthMode() {
+    isRegisterMode = !isRegisterMode;
+    if (isRegisterMode) {
+        if (authTitle) authTitle.textContent = 'Create Account';
+        if (loginBtn) loginBtn.textContent = 'Login';
+        if (registerBtn) registerBtn.textContent = 'Register';
+    } else {
+        if (authTitle) authTitle.textContent = 'Login';
+        if (loginBtn) loginBtn.textContent = 'Login';
+        if (registerBtn) registerBtn.textContent = 'Create Account';
+    }
+    if (authError) authError.textContent = '';
 }
 
 // Update total score display
@@ -420,11 +472,6 @@ function confirmRestart(dontShowAgain = false) {
     hideRestartModal();
     startQuizInternal();
 }
-
-// Modal event listeners
-if (modalCancelBtn) modalCancelBtn.addEventListener('click', hideRestartModal);
-if (modalOkBtn) modalOkBtn.addEventListener('click', () => confirmRestart(false));
-if (modalOkNoShowBtn) modalOkNoShowBtn.addEventListener('click', () => confirmRestart(true));
 
 // Render selection screen
 function renderQuizList() {
@@ -504,16 +551,21 @@ function startCurrentQuiz() {
         if (answersEl) answersEl.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.6)">No questions available.</p>';
         return;
     }
-    
+    // If this is a community/custom quiz, we don't track completed scores
+    if (isPlayingCustomQuiz) {
+        startQuizInternal();
+        return;
+    }
+
     const quizId = quizzes[currentQuizIndex].id;
     const isCompleted = completedQuizzes[quizId] !== undefined;
-    
+
     // Show warning if quiz was completed and user hasn't disabled it
     if (isCompleted && !dontShowRestartWarning) {
         showRestartModal();
         return;
     }
-    
+
     // If completed but warning disabled, remove old points first
     if (isCompleted) {
         totalScore -= completedQuizzes[quizId];
@@ -521,19 +573,21 @@ function startCurrentQuiz() {
         saveState();
         updateTotalScoreDisplay();
     }
-    
+
     startQuizInternal();
 }
 
 function startQuizInternal() {
     // Shuffle again to ensure a fresh order when starting/restarting
-    if (currentQuizIndex !== null) {
+    if (isPlayingCustomQuiz && currentCustomQuiz) {
+        questions = shuffleArray(currentCustomQuiz.questions || []);
+    } else if (currentQuizIndex !== null) {
         questions = shuffleArray(quizzes[currentQuizIndex].questions || []);
     }
     currentQuestion = 0;
     score = 0;
     currentQuizResults = []; // Reset results for new quiz attempt
-    if (scoreDisplayEl) scoreDisplayEl.textContent = 'Points: 0';
+    if (scoreDisplayEl) scoreDisplayEl.textContent = isPlayingCustomQuiz ? 'No Points (Community Quiz)' : 'Points: 0';
     if (startBtn) startBtn.style.display = 'none';
     loadQuestion();
 }
@@ -575,13 +629,17 @@ function selectAnswer(index) {
 
     let pointsEarned = 0;
     const isCorrect = index === q.correct;
-    
-    if (isCorrect) {
+
+    if (!isPlayingCustomQuiz && isCorrect) {
         // 1000 points base, -10 per 100ms, minimum 50
         const tenths = Math.floor(elapsed / 100);
         pointsEarned = Math.max(50, 1000 - tenths * 10);
         score += pointsEarned;
         if (scoreDisplayEl) scoreDisplayEl.textContent = `Points: ${score}`;
+    } else if (isPlayingCustomQuiz) {
+        // No points for community quizzes
+        pointsEarned = 0;
+        if (scoreDisplayEl) scoreDisplayEl.textContent = 'No Points (Community Quiz)';
     }
     // Wrong answer = 0 points (no change)
     
@@ -599,31 +657,51 @@ function selectAnswer(index) {
         if (nextBtn) nextBtn.style.display = 'block';
     } else {
         setTimeout(() => {
-            // Save score to completed quizzes and add to total
-            const quizId = quizzes[currentQuizIndex].id;
-            const quizName = quizzes[currentQuizIndex].name;
-            completedQuizzes[quizId] = score;
-            totalScore += score;
-            
-            // Save detailed history
-            quizHistory.unshift({
-                quizId: quizId,
-                quizName: quizName,
-                totalPoints: score,
-                date: new Date().toISOString(),
-                questions: currentQuizResults
-            });
-            
+            // If this is a community quiz, do NOT add to totalScore or completedQuizzes
+            if (isPlayingCustomQuiz && currentCustomQuiz) {
+                const quizId = currentCustomQuiz.id;
+                const quizName = currentCustomQuiz.name;
+
+                // Save detailed history with 0 points and mark as custom
+                quizHistory.unshift({
+                    quizId: quizId,
+                    quizName: quizName,
+                    totalPoints: 0,
+                    date: new Date().toISOString(),
+                    questions: currentQuizResults,
+                    isCustom: true
+                });
+            } else {
+                const quizId = quizzes[currentQuizIndex].id;
+                const quizName = quizzes[currentQuizIndex].name;
+                completedQuizzes[quizId] = score;
+                totalScore += score;
+
+                // Save detailed history
+                quizHistory.unshift({
+                    quizId: quizId,
+                    quizName: quizName,
+                    totalPoints: score,
+                    date: new Date().toISOString(),
+                    questions: currentQuizResults
+                });
+            }
+
             // Keep only last 50 quiz attempts to save space
             if (quizHistory.length > 50) {
                 quizHistory = quizHistory.slice(0, 50);
             }
-            
+
             saveState();
             updateTotalScoreDisplay();
-            renderQuizList(); // Update badges in background
-            
-            if (questionEl) questionEl.textContent = `Quiz Complete! Final Points: ${score}`;
+            renderQuizList(); // Update badges
+
+            if (isPlayingCustomQuiz) {
+                if (questionEl) questionEl.textContent = `Community Quiz Complete!`;
+            } else {
+                if (questionEl) questionEl.textContent = `Quiz Complete! Final Points: ${score}`;
+            }
+
             if (answersEl) answersEl.innerHTML = '';
             if (startBtn) startBtn.textContent = 'Restart';
             if (startBtn) startBtn.style.display = 'inline-block';
@@ -639,14 +717,13 @@ function nextQuestion() {
 function goBackToSelection() {
     currentQuizIndex = null;
     questions = [];
+    // If we were playing a custom quiz, reset that state
+    isPlayingCustomQuiz = false;
+    currentCustomQuiz = null;
     if (quizContainer) quizContainer.style.display = 'none';
     if (selectionEl) selectionEl.style.display = 'block';
+    if (scoreDisplayEl) scoreDisplayEl.textContent = `Points: ${totalScore || 0}`;
 }
-
-// Events
-if (startBtn) startBtn.addEventListener('click', startCurrentQuiz);
-if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
-if (exitBtn) exitBtn.addEventListener('click', goBackToSelection);
 
 // Settings Modal Functions
 function showSettingsModal() {
@@ -663,7 +740,6 @@ function hideSettingsModal() {
     if (settingsModal) settingsModal.style.display = 'none';
 }
 
-async function saveSettings() {
 async function saveSettings() {
     const oldPassword = settingsOldPassword ? settingsOldPassword.value : '';
     const newPassword = settingsNewPassword ? settingsNewPassword.value : '';
@@ -710,11 +786,6 @@ async function saveSettings() {
     if (settingsConfirmPassword) settingsConfirmPassword.value = '';
 }
 
-// Settings event listeners
-if (userDisplayEl) userDisplayEl.addEventListener('click', showSettingsModal);
-if (settingsCloseBtn) settingsCloseBtn.addEventListener('click', hideSettingsModal);
-if (settingsSaveBtn) settingsSaveBtn.addEventListener('click', saveSettings);
-
 // History Modal Functions
 function showHistoryModal() {
     if (!currentUser) return;
@@ -735,13 +806,13 @@ function renderHistory() {
     
     historyContent.innerHTML = quizHistory.map((entry, entryIndex) => {
         const date = new Date(entry.date);
-        const dateStr = date.toLocaleDateString('de-DE', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        const dateStr = date.toLocaleDateString('en-US', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         
         const questionsHtml = (entry.questions || []).map((q, qIndex) => {
             const timeSeconds = (q.timeMs / 1000).toFixed(2);
@@ -790,9 +861,561 @@ function toggleHistoryQuestions(index) {
     }
 }
 
-// History event listeners
-if (totalScoreDisplayEl) totalScoreDisplayEl.addEventListener('click', showHistoryModal);
-if (historyCloseBtn) historyCloseBtn.addEventListener('click', hideHistoryModal);
+// ========== CUSTOM QUIZ FUNCTIONS ==========
+
+// Load custom quizzes from server
+async function loadCustomQuizzes() {
+    try {
+        const res = await fetch('/api/custom-quizzes');
+        if (res.ok) {
+            customQuizzes = await res.json();
+        }
+    } catch (e) {
+        console.log('Could not load custom quizzes:', e);
+        customQuizzes = [];
+    }
+}
+
+// Render custom quizzes list with optional search filter
+function renderCustomQuizList(searchTerm = '') {
+    if (!customQuizListEl) return;
+    
+    // Filter quizzes by search term
+    let filteredQuizzes = customQuizzes || [];
+    if (searchTerm) {
+        filteredQuizzes = filteredQuizzes.filter(q => 
+            (q.name || '').toLowerCase().includes(searchTerm) ||
+            (q.createdBy || '').toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    if (filteredQuizzes.length === 0) {
+        if (searchTerm) {
+            customQuizListEl.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); padding: 20px;">No quizzes match your search.</p>';
+        } else {
+            customQuizListEl.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); padding: 20px;">No community quizzes yet. Be the first to create one!</p>';
+        }
+        return;
+    }
+    
+    customQuizListEl.innerHTML = '';
+    filteredQuizzes.forEach((q) => {
+        const isOwner = currentUser && q.createdBy === currentUser;
+        const canDelete = isOwner || isAdmin;
+        const createdDate = new Date(q.createdAt);
+        const expiresIn = Math.ceil((q.createdAt + 7 * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000));
+        
+        const card = document.createElement('div');
+        card.className = 'quiz-card';
+        card.innerHTML = `
+            <div class="quiz-card-body">
+                <div class="quiz-name">
+                    ${escapeHtml(q.name || 'Untitled Quiz')}
+                    <span class="custom-badge">Community</span>
+                    <span class="no-points-badge">No Points</span>
+                </div>
+                <div class="quiz-meta">${(q.questions || []).length} questions</div>
+                <div class="quiz-creator">by ${escapeHtml(q.createdBy)} · expires in ${expiresIn} day${expiresIn !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="quiz-card-actions">
+                <button class="btn start-custom-quiz-btn" data-quiz-id="${q.id}">Play</button>
+                ${canDelete ? `<button class="delete-quiz-btn" data-quiz-id="${q.id}">Delete</button>` : ''}
+            </div>
+        `;
+        customQuizListEl.appendChild(card);
+    });
+    
+    // Attach play listeners
+    customQuizListEl.querySelectorAll('.start-custom-quiz-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const quizId = btn.getAttribute('data-quiz-id');
+            openCustomQuiz(quizId);
+        });
+    });
+    
+    // Attach delete listeners
+    customQuizListEl.querySelectorAll('.delete-quiz-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const quizId = btn.getAttribute('data-quiz-id');
+            if (confirm('Are you sure you want to delete this quiz?')) {
+                await deleteCustomQuiz(quizId);
+            }
+        });
+    });
+}
+
+// Open and play a custom quiz
+function openCustomQuiz(quizId) {
+    const quiz = customQuizzes.find(q => q.id === quizId);
+    if (!quiz) return;
+    
+    isPlayingCustomQuiz = true;
+    currentCustomQuiz = quiz;
+    currentQuizIndex = null; // Not a standard quiz
+    questions = shuffleArray(quiz.questions || []);
+    
+    if (quizTitleEl) quizTitleEl.textContent = quiz.name || 'Community Quiz';
+    if (selectionEl) selectionEl.style.display = 'none';
+    if (quizContainer) quizContainer.style.display = 'block';
+    if (startBtn) startBtn.style.display = 'inline-block';
+    if (startBtn) startBtn.textContent = 'Start';
+    score = 0;
+    if (scoreDisplayEl) scoreDisplayEl.textContent = 'No Points (Community Quiz)';
+    if (progressEl) progressEl.style.width = '0%';
+    if (questionCountEl) questionCountEl.textContent = `Question 0 / ${questions.length}`;
+    if (questionEl) questionEl.textContent = 'Community Quiz - No points awarded. Click "Start" to begin!';
+    if (answersEl) answersEl.innerHTML = '';
+}
+
+// Delete a custom quiz
+async function deleteCustomQuiz(quizId) {
+    try {
+        const res = await fetch(`/api/custom-quizzes/${quizId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: currentUser })
+        });
+        if (res.ok) {
+            await loadCustomQuizzes();
+            renderCustomQuizList();
+        } else {
+            const err = await res.json();
+            alert(err.error || 'Could not delete quiz');
+        }
+    } catch (e) {
+        console.error('Delete error:', e);
+    }
+}
+
+// Show create quiz modal
+function showCreateQuizModal() {
+    if (!createQuizModal) return;
+    if (newQuizNameInput) newQuizNameInput.value = '';
+    if (questionsContainer) questionsContainer.innerHTML = '';
+    if (createQuizError) createQuizError.textContent = '';
+    
+    // Add one empty question by default
+    addNewQuestion();
+    
+    createQuizModal.style.display = 'flex';
+}
+
+// Hide create quiz modal
+function hideCreateQuizModal() {
+    if (createQuizModal) createQuizModal.style.display = 'none';
+}
+
+// Add a new question block to the form
+let questionCounter = 0;
+function addNewQuestion() {
+    if (!questionsContainer) return;
+    questionCounter++;
+    const qNum = questionsContainer.children.length + 1;
+    
+    const block = document.createElement('div');
+    block.className = 'question-block';
+    block.dataset.qid = questionCounter;
+    block.innerHTML = `
+        <div class="question-header">
+            <span class="question-number">Question ${qNum}</span>
+            <button type="button" class="remove-question-btn" data-qid="${questionCounter}">Remove</button>
+        </div>
+        <input type="text" class="question-input q-text" placeholder="Enter your question..." maxlength="500">
+        <div class="answers-grid">
+            <div class="answer-input-wrapper">
+                <input type="radio" name="correct-${questionCounter}" value="0" checked>
+                <input type="text" class="answer-text" placeholder="Answer 1" maxlength="200">
+            </div>
+            <div class="answer-input-wrapper">
+                <input type="radio" name="correct-${questionCounter}" value="1">
+                <input type="text" class="answer-text" placeholder="Answer 2" maxlength="200">
+            </div>
+            <div class="answer-input-wrapper">
+                <input type="radio" name="correct-${questionCounter}" value="2">
+                <input type="text" class="answer-text" placeholder="Answer 3" maxlength="200">
+            </div>
+            <div class="answer-input-wrapper">
+                <input type="radio" name="correct-${questionCounter}" value="3">
+                <input type="text" class="answer-text" placeholder="Answer 4" maxlength="200">
+            </div>
+        </div>
+        <p style="color: rgba(255,255,255,0.4); font-size: 0.75rem; margin-top: 8px;">Select the radio button next to the correct answer</p>
+    `;
+    questionsContainer.appendChild(block);
+    
+    // Attach remove listener
+    block.querySelector('.remove-question-btn').addEventListener('click', () => {
+        block.remove();
+        renumberQuestions();
+    });
+}
+
+// Renumber questions after removal
+function renumberQuestions() {
+    if (!questionsContainer) return;
+    Array.from(questionsContainer.children).forEach((block, i) => {
+        const numEl = block.querySelector('.question-number');
+        if (numEl) numEl.textContent = `Question ${i + 1}`;
+    });
+}
+
+// Collect quiz data from form
+function collectQuizData() {
+    const name = newQuizNameInput ? newQuizNameInput.value.trim() : '';
+    const questionBlocks = questionsContainer ? questionsContainer.querySelectorAll('.question-block') : [];
+    
+    const questions = [];
+    for (const block of questionBlocks) {
+        const qText = block.querySelector('.q-text').value.trim();
+        const answerInputs = block.querySelectorAll('.answer-text');
+        const answers = Array.from(answerInputs).map(inp => inp.value.trim());
+        const qid = block.dataset.qid;
+        const correctRadio = block.querySelector(`input[name="correct-${qid}"]:checked`);
+        const correct = correctRadio ? parseInt(correctRadio.value) : 0;
+        
+        questions.push({ question: qText, answers, correct });
+    }
+    
+    return { name, questions };
+}
+
+// Validate quiz data
+function validateQuizData(data) {
+    if (!data.name || data.name.length < 3) {
+        return 'Quiz name must be at least 3 characters.';
+    }
+    if (!data.questions || data.questions.length === 0) {
+        return 'Add at least one question.';
+    }
+    for (let i = 0; i < data.questions.length; i++) {
+        const q = data.questions[i];
+        if (!q.question || q.question.length < 5) {
+            return `Question ${i + 1} must have at least 5 characters.`;
+        }
+        const filledAnswers = q.answers.filter(a => a.length > 0);
+        if (filledAnswers.length < 2) {
+            return `Question ${i + 1} must have at least 2 answers.`;
+        }
+        if (!q.answers[q.correct] || q.answers[q.correct].length === 0) {
+            return `Question ${i + 1}: the correct answer cannot be empty.`;
+        }
+    }
+    return null;
+}
+
+// Show publish warning
+function showPublishWarning() {
+    if (!currentUser) {
+        if (createQuizError) createQuizError.textContent = 'You must be logged in to publish a community quiz.';
+        return;
+    }
+    const data = collectQuizData();
+    const error = validateQuizData(data);
+    if (error) {
+        if (createQuizError) createQuizError.textContent = error;
+        return;
+    }
+    if (createQuizError) createQuizError.textContent = '';
+    if (publishWarningModal) publishWarningModal.style.display = 'flex';
+}
+
+// Hide publish warning
+function hidePublishWarning() {
+    if (publishWarningModal) publishWarningModal.style.display = 'none';
+}
+
+// Submit the quiz
+async function submitCustomQuiz() {
+    const data = collectQuizData();
+    
+    // Filter out empty answers
+    data.questions = data.questions.map(q => ({
+        ...q,
+        answers: q.answers.filter(a => a.length > 0)
+    }));
+    
+    try {
+        const res = await fetch('/api/custom-quizzes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: data.name,
+                questions: data.questions,
+                createdBy: currentUser
+            })
+        });
+        
+        if (res.ok) {
+            hidePublishWarning();
+            hideCreateQuizModal();
+            await loadCustomQuizzes();
+            renderCustomQuizList();
+        } else {
+            // Try to parse JSON error; if that fails, fall back to text (HTML)
+            let errText = null;
+            try {
+                const err = await res.json();
+                errText = err && (err.error || JSON.stringify(err));
+            } catch (parseErr) {
+                // not JSON (likely HTML 404 page)
+                try { errText = await res.text(); } catch (e) { errText = String(e); }
+            }
+            console.error('Publish failed', res.status, errText);
+            if (createQuizError) createQuizError.textContent = (errText && errText.length < 300) ? errText : `Server returned status ${res.status}`;
+            hidePublishWarning();
+        }
+    } catch (e) {
+        console.error('Submit error:', e);
+        if (createQuizError) createQuizError.textContent = 'Network error. Please try again.';
+        hidePublishWarning();
+    }
+}
+
+// ========== ADMIN PANEL FUNCTIONS ==========
+
+async function showAdminPanel() {
+    if (!isAdmin) return;
+    if (adminPanelModal) adminPanelModal.style.display = 'flex';
+    await loadAllUsers();
+    renderAdminUsers();
+}
+
+function hideAdminPanel() {
+    if (adminPanelModal) adminPanelModal.style.display = 'none';
+}
+
+async function loadAllUsers() {
+    try {
+        const res = await fetch('/api/admin/users', {
+            headers: { 'X-Admin-User': currentUser }
+        });
+        if (res.ok) {
+            allUsers = await res.json();
+        } else {
+            allUsers = [];
+        }
+    } catch (e) {
+        console.error('Failed to load users:', e);
+        allUsers = [];
+    }
+}
+
+function renderAdminUsers(searchTerm = '') {
+    if (!adminUsersList) return;
+    
+    let filtered = allUsers;
+    if (searchTerm) {
+        filtered = allUsers.filter(u => u.username.toLowerCase().includes(searchTerm));
+    }
+    
+    if (filtered.length === 0) {
+        adminUsersList.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); padding: 20px;">No users found.</p>';
+        return;
+    }
+    
+    adminUsersList.innerHTML = '';
+    filtered.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'admin-user-item';
+        
+        const badges = [];
+        if (user.isAdmin) badges.push('<span class="admin-badge">Admin</span>');
+        if (user.isBanned) badges.push('<span class="banned-badge">Banned</span>');
+        
+        const isSelf = user.username === currentUser;
+        
+        item.innerHTML = `
+            <div class="admin-user-info">
+                <div class="admin-username">${escapeHtml(user.username)} ${badges.join('')}</div>
+                <div class="admin-user-meta">Score: ${user.totalScore || 0}</div>
+            </div>
+            <div class="admin-actions">
+                ${!isSelf && !user.isAdmin ? (user.isBanned 
+                    ? `<button class="btn-unban" data-user="${escapeHtml(user.username)}">Unban</button>`
+                    : `<button class="btn-ban" data-user="${escapeHtml(user.username)}">Ban</button>`) 
+                : ''}
+            </div>
+        `;
+        adminUsersList.appendChild(item);
+    });
+    
+    // Attach ban/unban listeners
+    adminUsersList.querySelectorAll('.btn-ban').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const targetUser = btn.getAttribute('data-user');
+            await banUser(targetUser, true);
+        });
+    });
+    
+    adminUsersList.querySelectorAll('.btn-unban').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const targetUser = btn.getAttribute('data-user');
+            await banUser(targetUser, false);
+        });
+    });
+}
+
+async function banUser(targetUser, ban) {
+    try {
+        const res = await fetch('/api/admin/ban', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminUser: currentUser, targetUser, ban })
+        });
+        if (res.ok) {
+            await loadAllUsers();
+            renderAdminUsers(adminUserSearch ? adminUserSearch.value.toLowerCase() : '');
+        } else {
+            const err = await res.json();
+            alert(err.error || 'Failed to update user');
+        }
+    } catch (e) {
+        console.error('Ban error:', e);
+        alert('Network error');
+    }
+}
+
+function renderAdminQuizzes() {
+    if (!adminQuizzesList) return;
+    
+    if (!customQuizzes || customQuizzes.length === 0) {
+        adminQuizzesList.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); padding: 20px;">No community quizzes.</p>';
+        return;
+    }
+    
+    adminQuizzesList.innerHTML = '';
+    customQuizzes.forEach(q => {
+        const item = document.createElement('div');
+        item.className = 'admin-quiz-item';
+        const expiresIn = Math.ceil((q.createdAt + 7 * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000));
+        
+        item.innerHTML = `
+            <div class="admin-quiz-info">
+                <div class="admin-username">${escapeHtml(q.name || 'Untitled')}</div>
+                <div class="admin-quiz-meta">by ${escapeHtml(q.createdBy)} · ${q.questions.length} questions · expires in ${expiresIn} day${expiresIn !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="admin-actions">
+                <button class="delete-quiz-btn" data-quiz-id="${q.id}">Delete</button>
+            </div>
+        `;
+        adminQuizzesList.appendChild(item);
+    });
+    
+    // Attach delete listeners
+    adminQuizzesList.querySelectorAll('.delete-quiz-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const quizId = btn.getAttribute('data-quiz-id');
+            if (confirm('Delete this quiz?')) {
+                await deleteCustomQuiz(quizId);
+                renderAdminQuizzes();
+            }
+        });
+    });
+}
+
+// ========== WISHES FUNCTIONS ==========
+
+async function submitWish() {
+    if (!currentUser) return;
+    
+    const wishText = wishInput ? wishInput.value.trim() : '';
+    if (!wishText) {
+        if (wishSuccess) {
+            wishSuccess.textContent = 'Please enter a wish.';
+            wishSuccess.style.color = '#ff6b6b';
+        }
+        return;
+    }
+    
+    try {
+        await apiRequest('/api/wishes', 'POST', {
+            username: currentUser,
+            wish: wishText
+        });
+        
+        if (wishInput) wishInput.value = '';
+        if (wishSuccess) {
+            wishSuccess.textContent = 'Your wish has been sent! ✓';
+            wishSuccess.style.color = '#28a745';
+            setTimeout(() => { wishSuccess.textContent = ''; }, 3000);
+        }
+    } catch (e) {
+        if (wishSuccess) {
+            wishSuccess.textContent = e && e.error ? e.error : 'Fehler beim Senden.';
+            wishSuccess.style.color = '#ff6b6b';
+        }
+    }
+}
+
+async function loadAdminWishes() {
+    if (!isAdmin || !currentUser) return [];
+    try {
+        const res = await fetch('/api/admin/wishes', {
+            headers: { 'X-Admin-User': currentUser }
+        });
+        if (res.ok) {
+            return await res.json();
+        }
+        return [];
+    } catch (e) {
+        console.error('Failed to load wishes:', e);
+        return [];
+    }
+}
+
+async function renderAdminWishes() {
+    if (!adminWishesList) return;
+    
+    adminWishesList.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); padding: 20px;">Loading...</p>';
+    
+    const wishes = await loadAdminWishes();
+    
+    if (!wishes || wishes.length === 0) {
+        adminWishesList.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); padding: 20px;">No wishes available.</p>';
+        return;
+    }
+    
+    adminWishesList.innerHTML = '';
+    wishes.forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'admin-wish-item';
+        const date = new Date(w.createdAt).toLocaleDateString('en-US', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        item.innerHTML = `
+            <div class="admin-wish-info">
+                <div class="admin-wish-meta">from <strong>${escapeHtml(w.username)}</strong> · ${date}</div>
+                <div class="admin-wish-text">${escapeHtml(w.wish)}</div>
+            </div>
+            <div class="admin-actions">
+                <button class="delete-wish-btn" data-wish-id="${w.id}">Delete</button>
+            </div>
+        `;
+        adminWishesList.appendChild(item);
+    });
+    // Attach delete listeners
+    adminWishesList.querySelectorAll('.delete-wish-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const wishId = btn.getAttribute('data-wish-id');
+            if (confirm('Delete this wish?')) {
+                try {
+                    await fetch(`/api/admin/wishes/${wishId}`, {
+                        method: 'DELETE',
+                        headers: { 'X-Admin-User': currentUser }
+                    });
+                    renderAdminWishes();
+                } catch (e) {
+                    console.error('Failed to delete wish:', e);
+                }
+            }
+        });
+    });
+}
 
 // Assign DOM elements and attach event listeners after DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -859,6 +1482,35 @@ document.addEventListener('DOMContentLoaded', () => {
     modalOkNoShowBtn = document.getElementById('modal-ok-no-show');
     totalScoreDisplayEl = document.getElementById('total-score-display');
 
+    // Create Quiz DOM elements
+    createQuizBtn = document.getElementById('create-quiz-btn');
+    createQuizModal = document.getElementById('create-quiz-modal');
+    newQuizNameInput = document.getElementById('new-quiz-name');
+    questionsContainer = document.getElementById('questions-container');
+    addQuestionBtn = document.getElementById('add-question-btn');
+    createQuizCancel = document.getElementById('create-quiz-cancel');
+    createQuizSubmit = document.getElementById('create-quiz-submit');
+    createQuizError = document.getElementById('create-quiz-error');
+    publishWarningModal = document.getElementById('publish-warning-modal');
+    publishWarningCancel = document.getElementById('publish-warning-cancel');
+    publishWarningConfirm = document.getElementById('publish-warning-confirm');
+    customQuizListEl = document.getElementById('custom-quiz-list');
+
+    // Admin DOM elements
+    adminPanelBtn = document.getElementById('admin-panel-btn');
+    adminPanelModal = document.getElementById('admin-panel-modal');
+    adminPanelClose = document.getElementById('admin-panel-close');
+    adminUsersList = document.getElementById('admin-users-list');
+    adminQuizzesList = document.getElementById('admin-quizzes-list');
+    adminWishesList = document.getElementById('admin-wishes-list');
+    adminUserSearch = document.getElementById('admin-user-search');
+    quizSearchInput = document.getElementById('quiz-search-input');
+    
+    // Wish DOM elements
+    wishInput = document.getElementById('wish-input');
+    submitWishBtn = document.getElementById('submit-wish-btn');
+    wishSuccess = document.getElementById('wish-success');
+
     // Event listeners (ensure they are attached now that DOM elements exist)
     if (loginBtn) loginBtn.addEventListener('click', handleLogin);
     if (registerBtn) registerBtn.addEventListener('click', handleRegister);
@@ -891,32 +1543,87 @@ document.addEventListener('DOMContentLoaded', () => {
     if (totalScoreDisplayEl) totalScoreDisplayEl.addEventListener('click', showHistoryModal);
     if (historyCloseBtn) historyCloseBtn.addEventListener('click', hideHistoryModal);
 
-// Initial render - try to restore remembered session
-(async function initAuth() {
-    const remembered = localStorage.getItem('rememberedUser');
-    if (remembered) {
-        // try server first
-        try {
-            const userData = await apiGetUser(remembered);
-            users[remembered] = users[remembered] || {};
-            Object.assign(users[remembered], userData);
-            loginUser(remembered, userData);
-            updateTotalScoreDisplay();
-            return;
-        } catch (e) {
-            // fallback to localStorage
-            try {
-                users = JSON.parse(localStorage.getItem('quizUsers') || '{}');
-            } catch (e2) { users = {}; }
-            if (!checkRememberedSession()) {
-                if (loginScreen) loginScreen.style.display = 'block';
-                if (selectionEl) selectionEl.style.display = 'none';
-            }
-            updateTotalScoreDisplay();
-            return;
-        }
+    // Create Quiz event listeners
+    if (createQuizBtn) createQuizBtn.addEventListener('click', showCreateQuizModal);
+    if (addQuestionBtn) addQuestionBtn.addEventListener('click', addNewQuestion);
+    if (createQuizCancel) createQuizCancel.addEventListener('click', hideCreateQuizModal);
+    if (createQuizSubmit) createQuizSubmit.addEventListener('click', (e) => { e.preventDefault(); try { showPublishWarning(); } catch (err) { if (createQuizError) createQuizError.textContent = err && err.error ? err.error : String(err); } });
+    if (publishWarningCancel) publishWarningCancel.addEventListener('click', hidePublishWarning);
+    if (publishWarningConfirm) publishWarningConfirm.addEventListener('click', (e) => { e.preventDefault(); try { submitCustomQuiz(); } catch (err) { if (createQuizError) createQuizError.textContent = err && err.error ? err.error : String(err); } });
+
+    // Admin event listeners
+    if (adminPanelBtn) adminPanelBtn.addEventListener('click', showAdminPanel);
+    if (adminPanelClose) adminPanelClose.addEventListener('click', hideAdminPanel);
+    
+    // Admin tabs
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabName = tab.getAttribute('data-tab');
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('admin-users-tab').style.display = tabName === 'users' ? 'block' : 'none';
+            document.getElementById('admin-quizzes-tab').style.display = tabName === 'quizzes' ? 'block' : 'none';
+            document.getElementById('admin-wishes-tab').style.display = tabName === 'wishes' ? 'block' : 'none';
+            if (tabName === 'quizzes') renderAdminQuizzes();
+            if (tabName === 'wishes') renderAdminWishes();
+        });
+    });
+    
+    // Wish submit event listener
+    if (submitWishBtn) submitWishBtn.addEventListener('click', submitWish);
+    
+    // Admin user search
+    if (adminUserSearch) {
+        adminUserSearch.addEventListener('input', () => {
+            renderAdminUsers(adminUserSearch.value.toLowerCase());
+        });
     }
-    if (loginScreen) loginScreen.style.display = 'block';
-    if (selectionEl) selectionEl.style.display = 'none';
-    updateTotalScoreDisplay();
-})();
+    
+    // Quiz search for community quizzes
+    if (quizSearchInput) {
+        quizSearchInput.addEventListener('input', () => {
+            renderCustomQuizList(quizSearchInput.value.toLowerCase());
+        });
+    }
+
+    // Initial render - try to restore remembered session
+    (async function initAuth() {
+        const remembered = localStorage.getItem('rememberedUser');
+        if (remembered) {
+            // try server first
+            try {
+                const userData = await apiGetUser(remembered);
+                // Do not auto-login admin accounts from remembered storage for safety
+                if (userData && userData.isAdmin === true) {
+                    localStorage.removeItem('rememberedUser');
+                    if (loginScreen) loginScreen.style.display = 'block';
+                    if (selectionEl) selectionEl.style.display = 'none';
+                    return;
+                }
+                users[remembered] = users[remembered] || {};
+                Object.assign(users[remembered], userData);
+                loginUser(remembered, userData);
+                updateTotalScoreDisplay();
+                return;
+            } catch (e) {
+                // fallback to localStorage
+                try {
+                    users = JSON.parse(localStorage.getItem('quizUsers') || '{}');
+                } catch (e2) { users = {}; }
+                if (!checkRememberedSession()) {
+                    if (loginScreen) loginScreen.style.display = 'block';
+                    if (selectionEl) selectionEl.style.display = 'none';
+                }
+                updateTotalScoreDisplay();
+                return;
+            }
+        }
+        if (loginScreen) loginScreen.style.display = 'block';
+        if (selectionEl) selectionEl.style.display = 'none';
+        updateTotalScoreDisplay();
+    })();
+}); 
+
+
+
+

@@ -626,3 +626,490 @@ body {
 .history-toggle.expanded {
     transform: rotate(180deg);
 }
+
+/* ========== Custom Quiz Section ========== */
+.custom-quizzes-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-title {
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.section-subtitle {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Create Quiz Modal */
+.create-quiz-modal {
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.create-quiz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.questions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.question-block {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.question-number {
+    color: #4facfe;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.remove-question-btn {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.remove-question-btn:hover {
+    background: rgba(220, 53, 69, 0.4);
+}
+
+.question-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.question-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.answer-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.answer-input-wrapper input[type="text"] {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 0.85rem;
+}
+
+.answer-input-wrapper input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.answer-input-wrapper input[type="radio"] {
+    accent-color: #28a745;
+    width: 16px;
+    height: 16px;
+}
+
+.correct-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+}
+
+/* Warning styles */
+.warning-text {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.warning-list {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 15px 0 15px 20px;
+    line-height: 1.8;
+}
+
+.warning-list li {
+    margin-bottom: 5px;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Custom quiz badge */
+.custom-badge {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.1));
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    color: #ffc107;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.no-points-badge {
+    background: rgba(108, 117, 125, 0.2);
+    border: 1px solid rgba(108, 117, 125, 0.4);
+    color: #6c757d;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    margin-left: 8px;
+}
+
+.quiz-creator {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+.delete-quiz-btn {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+}
+
+.delete-quiz-btn:hover {
+    background: rgba(220, 53, 69, 0.4);
+}
+
+/* Search input */
+.search-container {
+    flex: 0 0 auto;
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 0.9rem;
+    width: 200px;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #4facfe;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Admin button */
+.btn-admin {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    border-color: #9b59b6;
+}
+
+.btn-admin:hover {
+    background: linear-gradient(135deg, #8e44ad, #7d3c98);
+    box-shadow: 0 5px 20px rgba(155, 89, 182, 0.4);
+}
+
+/* Admin modal */
+.admin-modal {
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-tab {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-tab:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.admin-tab.active {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: #1a1a2e;
+    font-weight: 600;
+    border-color: transparent;
+}
+
+.admin-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.admin-user-item,
+.admin-quiz-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-user-info,
+.admin-quiz-info {
+    flex: 1;
+}
+
+.admin-username {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.admin-user-meta,
+.admin-quiz-meta {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-ban {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.btn-ban:hover {
+    background: rgba(220, 53, 69, 0.4);
+}
+
+.btn-unban {
+    background: rgba(40, 167, 69, 0.2);
+    border: 1px solid rgba(40, 167, 69, 0.4);
+    color: #28a745;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.btn-unban:hover {
+    background: rgba(40, 167, 69, 0.4);
+}
+
+.banned-badge {
+    background: rgba(220, 53, 69, 0.3);
+    border: 1px solid rgba(220, 53, 69, 0.5);
+    color: #dc3545;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.admin-badge {
+    background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(142, 68, 173, 0.3));
+    border: 1px solid rgba(155, 89, 182, 0.5);
+    color: #9b59b6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.admin-search {
+    margin-bottom: 15px;
+}
+
+.admin-search .search-input {
+    width: 100%;
+}
+/* Wish Section Styles */
+.wish-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(79, 172, 254, 0.1);
+}
+
+.wish-description {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.wish-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wish-input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
+    font-family: inherit;
+}
+
+.wish-input:focus {
+    border-color: rgba(79, 172, 254, 0.5);
+}
+
+.wish-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.wish-success {
+    color: #28a745;
+    font-size: 0.9rem;
+    text-align: center;
+    min-height: 1.2em;
+    margin-top: 5px;
+}
+
+/* Admin Wish Item Styles */
+.admin-wish-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-wish-info {
+    flex: 1;
+    text-align: left;
+}
+
+.admin-wish-meta {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 8px;
+}
+
+.admin-wish-meta strong {
+    color: #4facfe;
+}
+
+.admin-wish-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.delete-wish-btn {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.delete-wish-btn:hover {
+    background: rgba(220, 53, 69, 0.4);
+}

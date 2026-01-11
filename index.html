@@ -35,9 +35,37 @@
     <div id="selection" class="selection" style="display:none;">
         <div class="selection-header">
             <h2>Select a Quiz</h2>
-            <button class="btn btn-secondary btn-small" id="logout-btn">Logout</button>
+            <div class="header-buttons">
+                <button class="btn btn-small" id="create-quiz-btn">+ Create Quiz</button>
+                <button class="btn btn-small btn-admin" id="admin-panel-btn" style="display:none;">Admin Panel</button>
+                <button class="btn btn-secondary btn-small" id="logout-btn">Logout</button>
+            </div>
         </div>
         <div id="quiz-list" class="quiz-list"></div>
+        
+        <!-- Custom Quizzes Section -->
+        <div id="custom-quizzes-section" class="custom-quizzes-section">
+            <div class="section-header">
+                <h3 class="section-title">Community Quizzes <span class="section-subtitle">(no points, auto-delete after 1 week)</span></h3>
+                <div class="search-container">
+                    <input type="text" id="quiz-search-input" class="search-input" placeholder="Search quizzes...">
+                </div>
+            </div>
+            <div id="custom-quiz-list" class="quiz-list"></div>
+        </div>
+        
+        <!-- Quiz Wish Section -->
+        <div id="wish-section" class="wish-section">
+            <div class="section-header">
+                <h3 class="section-title">💡 Quiz Wishes</h3>
+            </div>
+            <p class="wish-description">Have an idea for a new quiz? Write your wish here!</p>
+            <div class="wish-form">
+                <textarea id="wish-input" class="wish-input" placeholder="Describe the quiz you'd like..." maxlength="500"></textarea>
+                <button class="btn btn-small" id="submit-wish-btn">Send wish</button>
+            </div>
+            <p id="wish-success" class="wish-success"></p>
+        </div>
     </div>
 
     <div class="quiz-container" id="quiz-container" style="display:none;">
@@ -118,7 +146,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- History Modal -->
     <div class="modal-overlay" id="history-modal" style="display: none;">
         <div class="modal history-modal">
@@ -132,7 +160,82 @@
         </div>
     </div>
 
+    <!-- Create Quiz Modal -->
+    <div class="modal-overlay" id="create-quiz-modal" style="display: none;">
+        <div class="modal create-quiz-modal">
+            <h3>Create Your Own Quiz</h3>
+            <div class="create-quiz-form">
+                <input type="text" id="new-quiz-name" class="auth-input" placeholder="Quiz Name" maxlength="100">
+                
+                <div id="questions-container" class="questions-container">
+                    <!-- Questions will be added here dynamically -->
+                </div>
+                
+                <button type="button" class="btn btn-secondary btn-small" id="add-question-btn">+ Add Question</button>
+                
+                <p id="create-quiz-error" class="auth-error"></p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="create-quiz-cancel">Cancel</button>
+                <button type="button" class="btn" id="create-quiz-submit">Publish Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Publish Warning Modal -->
+    <div class="modal-overlay" id="publish-warning-modal" style="display: none;">
+        <div class="modal">
+            <h3>⚠️ Important Warning</h3>
+            <p class="warning-text">
+                Before publishing your quiz, please note:<br><br>
+                <strong>Your account will be permanently suspended</strong> if your quiz contains:
+            </p>
+            <ul class="warning-list">
+                <li>Offensive, hateful, or discriminatory content</li>
+                <li>Inappropriate or explicit material</li>
+                <li>Harassment or bullying</li>
+                <li>Spam or misleading content</li>
+            </ul>
+            <p class="warning-text">
+                All quizzes are visible to all users and will be automatically deleted after 1 week.
+                <strong>No points are awarded for community quizzes.</strong>
+            </p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="publish-warning-cancel">Cancel</button>
+                <button type="button" class="btn btn-danger" id="publish-warning-confirm">I Understand, Publish</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div class="modal-overlay" id="admin-panel-modal" style="display: none;">
+        <div class="modal admin-modal">
+            <h3>🛡️ Admin Panel</h3>
+            <div class="admin-tabs">
+                <button type="button" class="admin-tab active" data-tab="users">Users</button>
+                <button type="button" class="admin-tab" data-tab="quizzes">All Quizzes</button>
+                <button type="button" class="admin-tab" data-tab="wishes">Wishes</button>
+            </div>
+            <div id="admin-users-tab" class="admin-tab-content">
+                <div class="admin-search">
+                    <input type="text" id="admin-user-search" class="search-input" placeholder="Search users...">
+                </div>
+                <div id="admin-users-list" class="admin-list"></div>
+            </div>
+            <div id="admin-quizzes-tab" class="admin-tab-content" style="display:none;">
+                <div id="admin-quizzes-list" class="admin-list"></div>
+            </div>
+            <div id="admin-wishes-tab" class="admin-tab-content" style="display:none;">
+                <div id="admin-wishes-list" class="admin-list"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn" id="admin-panel-close">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
+
 

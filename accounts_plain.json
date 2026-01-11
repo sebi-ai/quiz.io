@@ -39,7 +39,7 @@
     "isBanned": false,
     "isAdmin": false
   },
-  "23rsfdeefasdf": {
+  "^23rsfdeefasdf": {
     "password": "$2a$10$RrnrgG0jUa1QqG24YnYKZOfTZ2wPblcplx0r0TOqIzgKWuaPP4Ulq",
     "totalScore": 0,
     "completedQuizzes": {},
@@ -49,7 +49,7 @@
     "isAdmin": false,
     "isBanned": false
   },
-  "xfg_hert": {
+  "xfg hert": {
     "password": "$2a$10$eQiXGTgf8YgviK.Hc7brvurmamM.CQqqp7WUsijWeaQF.TdE4FWjO",
     "totalScore": 0,
     "completedQuizzes": {},

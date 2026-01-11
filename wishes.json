@@ -1,0 +1,20 @@
+[
+  {
+    "id": "wish_1768148060994_swqlhqclk",
+    "username": "testuser",
+    "wish": "Test wish message",
+    "createdAt": 1768148060994
+  },
+  {
+    "id": "wish_1768148134994_mljv94u2b",
+    "username": "1234",
+    "wish": "123aösdkf",
+    "createdAt": 1768148134994
+  },
+  {
+    "id": "wish_1768148273370_bbmyo4pib",
+    "username": "1234",
+    "wish": "test",
+    "createdAt": 1768148273370
+  }
+]
